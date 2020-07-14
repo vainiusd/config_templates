@@ -1,0 +1,26 @@
+{#
+Example JSON values:
+{
+    "template": "l3int",
+    "svi_id" : 3100
+    "vrf": "vrf_name",
+    "mtu": 9050
+    "anycast_gw": True|False
+    "ipv4_address": "10.0.0.1/31"
+}
+-#}
+
+vlan {{ svi_id }}
+
+interface Vlan{{ svi_id }}
+  description VRF_{{ vrf }}
+  no shutdown
+  mtu {{ mtu|default('9000')}}
+  vrf member {{ vrf }}
+  no ip redirects
+  ip address {{ ipv4_address }}
+  no ipv6 redirects
+{% if anycast_gw %}
+  fabric forwarding mode anycast-gateway
+{% endif %}
+

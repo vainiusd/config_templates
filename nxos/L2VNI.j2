@@ -1,0 +1,70 @@
+{#
+It is assumed that last 4 digits of VNI are VLAN ID:
+21 -> 0021
+Example JSON values:
+{
+    "template": "l2vni",
+    "asn": 65510,
+    "l2vni": 550021,
+    "int_id": 12,
+    "lag_id": 200,
+    "mlag_id": 2000
+}
+-#}
+{% set vlan_id = ((l2vni|string)[-4:])|int % 10000  -%}
+{% if not (int_id is defined) and not (lag_id is defined) and not (mlag_id is defined) %}
+  {% set int_template = True -%}
+{% else %}
+  {% set int_template = False -%}
+{% endif %}
+vlan {{ vlan_id }}
+  vn-segment {{ l2vni }}
+interface nve1
+  member vni {{ l2vni }}
+    suppress-arp
+    ingress-replication protocol bgp
+evpn
+  vni {{ l2vni }} l2
+    rd {{ asn|default('ASN') }}:{{ l2vni }}
+    route-target import {{ asn|default('ASN') }}:{{ l2vni }}
+    route-target export {{ asn|default('ASN') }}:{{ l2vni }}
+
+{% if lag_id is defined -%}
+interface port-channel{{ lag_id }}
+  switchport
+  switchport mode trunk
+  switchport trunk allowed vlan add {{ vlan_id }}
+  {% if mlag_id is defined %}
+  vpc {{ mlag_id }}
+  {% endif %}
+{% endif %}
+
+{% if (int_id is defined) and (lag_id is defined) -%}
+interface ethernet1/{{ int_id }}
+  channel-group {{ lag_id }} mode active
+{% elif int_id is defined %}
+interface ethernet1/{{ int_id }}
+  switchport
+  switchport mode trunk
+  switchport trunk allowed vlan add {{ vlan_id }}
+{% endif %}
+
+
+{% if int_template %}
+! To generate manually:
+!
+! interface ethernet1/[interface_id]
+!   channel-group [port-channel] mode active
+!
+! interface port-channel[port-channel]
+!   switchport
+!   switchport mode trunk
+!   switchport trunk allowed vlan add [vlan-id]
+!   vpc [vpc-id]
+!
+! interface ethernet1/[interface_id]
+!   switchport
+!   switchport mode trunk
+!   switchport trunk allowed vlan add [vlan-id]
+!
+{% endif %}

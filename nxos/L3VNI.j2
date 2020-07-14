@@ -1,0 +1,50 @@
+{#
+It is assumed that last 4 digits of VNI are VLAN ID:
+21 -> 0021
+Example JSON values:
+{
+    "template": "l3vni",
+    "asn": 65510,
+    "l3vni": 550021,
+    "vrf": "vrf_name",
+    "site_id": 5
+    "mtu": 9050
+    "bgp_peer_tmpl": "VPC_PEER"
+    "bgp_peer_vpc" ""
+}
+-#}
+{% set vlan_id = ((l3vni|string)[-4:])|int % 10000  -%}
+{% set rd = asn|string + ":" + site_id|string + l3vni|string  -%}
+vlan {{ vlan_id }}
+  vn-segment {{ l3vni }}
+
+vrf context {{ vrf }}
+  vni {{ l3vni }}
+  rd {{ rd }}
+  address-family ipv4 unicast
+    route-target both {{ asn }}:{{ l3vni }}
+    route-target both {{ asn }}:{{ l3vni }} evpn
+
+interface Vlan{{ vlan_id }}
+  description VRF_{{ vrf }}_VNI{{ l3vni }}_Tenant-SVI
+  no shutdown
+  mtu {{ mtu|default('9000')}}
+  vrf member {{ vrf }}
+  no ip redirects
+  ip forward
+  no ipv6 redirects
+
+interface nve1
+  member vni {{ l3vni }} associate-vrf
+
+route-map permitall permit 10
+
+router bgp {{ asn }}
+  vrf {{ vrf }}
+    address-family ipv4 unicast
+      redistribute direct route-map permitall
+      redistribute static route-map permitall
+{% if bgp_peer_tmpl is defined and bgp_peer_vpc is defined %}
+    neighbor {{ bgp_peer_vpc }}
+      inherit template {{ bgp_peer_tmpl }}
+{% endif %}
