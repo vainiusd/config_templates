@@ -75,7 +75,7 @@ for jsonConfig in args.json:
       json_data = json.load(json_file)
       #print(json_data)
   if not templ:
-    templateFileName = json_data['template'] + '.j2'
+    templateFileName = templDir + json_data['template'] + '.j2'
   
   nameDiff = json_data['template'].lower()
 
