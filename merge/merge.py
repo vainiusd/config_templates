@@ -3,7 +3,6 @@
 # prereq:
 # sudo apt-get install python-pip -y
 # sudo pip install jinja2
-# mkdir ./configs
 #
 import sys
 import argparse
@@ -11,7 +10,6 @@ import json
 import os
 import jinja2
 
-OUTPUT_DIR = './configs/'
 def render(tpl_path, context):
     path, filename = os.path.split(tpl_path)
     return jinja2.Environment(
@@ -25,22 +23,42 @@ def render(tpl_path, context):
 # GET templateFileName from CLI
 
 parser = argparse.ArgumentParser(description='Merge json data with jinja2 templates')
-parser.add_argument('-t','--template', nargs='?', help="Template file name")
-parser.add_argument('-j','--json', nargs='*', help="JSON data file name")
+parser.add_argument('-j','--json', nargs='*', help="JSON data file name(s)")
+parser.add_argument('-t','--template', nargs='?', help="Template file name/directory")
+parser.add_argument('-o','--output-dir', nargs='?', help='File output directory')
 args = parser.parse_args()
 
 if not args.json:
   print('Data not provided')
   sys.exit(2)
 
+# If template is provided, set template
+# If template is dir or not provided,
+# search for template in .json config file and template dir
+# If not provided, template dir is current dir
+templDir = ''
 if args.template:
-  templ = True
-  templateFileName = args.template
+  if os.path.isdir(args.template):
+    templDir = args.template
+    templ = False
+  elif os.path.isfile(args.template):
+    templateFileName = args.template
+    templ = True
 else:
-  templ = None
+  templ = False
+
+DEFAULT_OUTPUT_DIR = './configs/'
+if args.output_dir:
+  outputDir = args.output_dir
+else:
+  outputDir = DEFAULT_OUTPUT_DIR
+
+if not os.path.exists(outputDir):
+  os.makedirs(outputDir)
+
 
 # With every data file *.json in list args.json
-# Create configuration files in ./configs/
+# Create configuration files in outputDir
 
 for jsonConfig in args.json:
   print("================================================")
@@ -77,7 +95,7 @@ for jsonConfig in args.json:
     result = render(templateFileName,context)
 
     # write output to file
-    outFile = open(OUTPUT_DIR+outputFileName,"w")
+    outFile = open(outputDir+outputFileName,"w")
     outFile.write(result)
     outFile.close()
 

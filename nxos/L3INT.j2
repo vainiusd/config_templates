@@ -1,20 +1,29 @@
 {#
 Example JSON values:
-{
-    "template": "l3int",
-    "svi_id" : 3100
-    "vrf": "vrf_name",
-    "mtu": 9050
-    "anycast_gw": True|False
-    "ipv4_address": "10.0.0.1/31"
+{   
+    "template": "L3INT",
+    "data": [
+        {
+            "l3int" : 3100,
+            "vrf": "vrf_name",
+            "mtu": 9100,
+            "anycast_gw": True|False,
+            "ipv4_address": "10.0.0.1/31"
+        },
+        {...}
+    ]
 }
 -#}
 
-vlan {{ svi_id }}
+vlan {{ l3int }}
 
-interface Vlan{{ svi_id }}
+interface Vlan{{ l3int }}
   description VRF_{{ vrf }}
+{% if shutdown is defined and shutdown %}
+  shutdown
+{% else %}
   no shutdown
+{% endif %}
   mtu {{ mtu|default('9000')}}
   vrf member {{ vrf }}
   no ip redirects

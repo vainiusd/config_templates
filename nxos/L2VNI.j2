@@ -3,12 +3,18 @@ It is assumed that last 4 digits of VNI are VLAN ID:
 21 -> 0021
 Example JSON values:
 {
-    "template": "l2vni",
+  "template": "L2VNI",
+  "data": [
+  {
     "asn": 65510,
     "l2vni": 550021,
+    "name": "vlan_name",
     "int_id": 12,
     "lag_id": 200,
     "mlag_id": 2000
+  },
+  {...}
+]
 }
 -#}
 {% set vlan_id = ((l2vni|string)[-4:])|int % 10000  -%}
@@ -19,6 +25,7 @@ Example JSON values:
 {% endif %}
 vlan {{ vlan_id }}
   vn-segment {{ l2vni }}
+  name {{ name|default('VNI'+l2vni|string)}}
 interface nve1
   member vni {{ l2vni }}
     suppress-arp

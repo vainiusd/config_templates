@@ -3,20 +3,25 @@ It is assumed that last 4 digits of VNI are VLAN ID:
 21 -> 0021
 Example JSON values:
 {
-    "template": "l3vni",
-    "asn": 65510,
-    "l3vni": 550021,
-    "vrf": "vrf_name",
-    "site_id": 5
-    "mtu": 9050
-    "bgp_peer_tmpl": "VPC_PEER"
-    "bgp_peer_vpc" ""
+  "template": "L3VNI",
+  "data": [
+    {
+        "asn": 65510,
+        "l3vni": 550021,
+        "vrf": "vrf_name",
+        "site_id": 6,
+        "mtu": 9050,
+        "bgp_peer_tmpl": "VPC_EVPN",
+        "bgp_peer_vpc": "10.179.0.36"
+    }
+  ]
 }
 -#}
 {% set vlan_id = ((l3vni|string)[-4:])|int % 10000  -%}
 {% set rd = asn|string + ":" + site_id|string + l3vni|string  -%}
 vlan {{ vlan_id }}
   vn-segment {{ l3vni }}
+  name VNI{{ l3vni }}_TENANT_SVI
 
 vrf context {{ vrf }}
   vni {{ l3vni }}
@@ -26,7 +31,7 @@ vrf context {{ vrf }}
     route-target both {{ asn }}:{{ l3vni }} evpn
 
 interface Vlan{{ vlan_id }}
-  description VRF_{{ vrf }}_VNI{{ l3vni }}_Tenant-SVI
+  description VRF_{{ vrf }}_VNI{{ l3vni }}_Tenant_SVI
   no shutdown
   mtu {{ mtu|default('9000')}}
   vrf member {{ vrf }}
@@ -46,5 +51,5 @@ router bgp {{ asn }}
       redistribute static route-map permitall
 {% if bgp_peer_tmpl is defined and bgp_peer_vpc is defined %}
     neighbor {{ bgp_peer_vpc }}
-      inherit template {{ bgp_peer_tmpl }}
+      inherit peer {{ bgp_peer_tmpl }}
 {% endif %}
