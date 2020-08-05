@@ -67,27 +67,24 @@ for jsonConfig in args.json:
   print("+")
   print("================================================")
   jsonConfigName = jsonConfig
-  #templateFileName = args.template
   _, jsonName = os.path.split(jsonConfigName)
-  print "jsonConfigName: " + jsonConfigName
-  #print "templateFileName: " + templateFileName
   with open(jsonConfigName) as json_file:
       json_data = json.load(json_file)
-      #print(json_data)
   if not templ:
     templateFileName = templDir + json_data['template'] + '.j2'
   
   nameDiff = json_data['template'].lower()
-
   #iterate through each json_data['data'] entry
   for entry in json_data['data']:
-
     # put entire json entry into jinja context for merging
     context = entry
 
     print("================================================")
-
     # get template name, output file name
+    # json config file must have a data parameter of the same name
+    # as the template value (in lowerase)
+    # template - AAA.j2, data must have "aaa": "xxx"
+    # str(entry[nameDiff]) = "xxx"
     outputFileName = jsonName[:-4] + str(entry[nameDiff]) + ".conf"
     print("outputFileName: " + outputFileName)
 
@@ -98,5 +95,4 @@ for jsonConfig in args.json:
     outFile = open(outputDir+outputFileName,"w")
     outFile.write(result)
     outFile.close()
-
   print("================================================")
