@@ -1,0 +1,44 @@
+{#
+Example JSON values:
+{
+  "template": "PO",
+  "data": [
+  {
+    "po": 12,
+    "monitor" : "MONITOR",
+    "description": "device lagX",
+    "allowed_vlans": "all",
+    "mtu": 9216,
+    "members": [
+    { 
+	    "id": 12,
+	    "description": "device intX\Y"
+    }
+    ]
+  }
+]
+}
+-#}
+	
+	
+interface port-channel{{ po }}
+  description {{ monitor|default('') }} {{ description|default('') }}
+  switchport
+  switchport mode trunk
+  switchport trunk allowed vlan {{ allowed_vlans|default('none') }}
+{% if mtu is defined %}
+  mtu 9216
+{% endif %}
+  vpc {{ po }}
+}
+
+{% for member in members %}
+interface Ethernet1/{{ member.id }}
+  description {{ monitor|default('') }} Po{{ po }} {{ member.description|default('') }}
+  switchport
+  switchport mode trunk
+  switchport trunk allowed vlan {{ allowed_vlans|default('none') }}
+  mtu 9216
+  channel-group {{ po }} mode active
+  no shutdown
+{% endfor %}
