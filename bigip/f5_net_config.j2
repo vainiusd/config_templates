@@ -1,0 +1,49 @@
+#jinja2: lstrip_blocks: True
+{# iterate over dictionaries in net section #}
+{% for key, value in net.items() %}
+{# vlan configration templating section #}
+  {% if key == "vlan" %}
+    {% for vlan in value %}
+      {% set prefix = name_prefix + 'vlan-' %}
+      {% set vlan_name = prefix + vlan.name %}
+create net vlan {{ vlan_name }}
+      {% if vlan.tag is defined %}
+modify net vlan {{ vlan_name }} tag {{ vlan.tag }}
+      {% endif %}
+      {% if vlan.interfaces is defined %}
+        {% for interface in vlan.interfaces %}
+modify net vlan {{ vlan_name }} interfaces add { {{ interface }} }
+        {% endfor %}
+      {% endif %}
+#
+{# Self IP (sub-vlan) configration templating section #}
+      {% if vlan.self is defined %}
+        {% set prefix = name_prefix + 'self-' %}
+        {% for self in vlan.self %}
+create net self {{ prefix }}{{ self.name }} address {{ self.ip }} vlan {{ vlan_name }}
+          {% if self.services is defined %}
+modify net self {{ prefix }}{{ self.name }} allow-service {{ self.services }}
+          {% endif %}
+          {% if self.traffic_group is defined %}
+modify net self {{ prefix }}{{ self.name }} traffic-group {{ self.traffic_group}}
+          {% endif %}
+#
+        {% endfor %}
+      {% endif %}
+{# end of Self IP (sub-vlan) configration templating section #}
+    {% endfor %}
+  {% endif %}
+{# end of vlan configration templating section #}
+{# route configration templating section #}
+  {% if key == "route" %}
+    {% set prefix = name_prefix + 'route-' %}
+    {% for rt in value %}
+create net route {{ prefix }}{{ rt.name }} network {{ rt.prefix }} gw {{ rt.gw }}
+      {% if rt.description is defined %}
+modify net route {{ prefix }}{{ rt.name }} description "{{ rt.description }}"
+      {% endif %}
+    {% endfor %}
+#
+  {% endif %}
+{# end of route configration templating section #}
+{% endfor %}
