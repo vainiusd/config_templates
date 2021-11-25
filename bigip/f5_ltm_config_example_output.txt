@@ -1,0 +1,30 @@
+# F5 LTM services configuration
+
+## Virtual server: vs_base_name_tcp8080
+create ltm virtual vs_base_name_tcp8080 destination 192.168.2.1:8080 ip-protocol tcp
+modify ltm virtual vs_base_name_tcp8080 description "can be a string with spaces"
+modify ltm virtual vs_base_name_tcp8080 source-address-translation { type automap }
+modify ltm virtual vs_base_name_tcp8080 vlans-enabled 
+modify ltm virtual vs_base_name_tcp8080 vlans add { vlan_name1 }
+### TLS configuration
+modify ltm virtual vs_base_name_tcp8080 profiles add { clientssl { context clientside } } 
+### HTTP configuration
+modify ltm virtual vs_base_name_tcp8080 profiles add { http }
+### Persistance configuration
+modify ltm virtual vs_base_name_tcp8080 persist replace-all-with { cookie { } }
+modify ltm virtual vs_base_name_tcp8080 fallback-persistence source_addr
+### Pool configuration
+create ltm pool pool_vs_base_name_tcp8080
+modify ltm virtual vs_base_name_tcp8080 pool pool_vs_base_name_tcp8080
+modify ltm pool pool_vs_base_name_tcp8080 description "can be a string with spaces"
+modify ltm pool pool_vs_base_name_tcp8080 load-balancing-mode least-connections-member
+modify ltm pool pool_vs_base_name_tcp8080 monitor tcp
+### Pool member / node configuration
+create ltm node 10.10.10.1 address 10.10.10.1
+modify ltm node 10.10.10.1 description "can be a string with spaces"
+modify ltm node 10.10.10.1 monitor icmp
+modify ltm pool pool_vs_base_name_tcp8080 members add { 10.10.10.1:8080 }
+create ltm node 10.10.10.2 address 10.10.10.2
+modify ltm node 10.10.10.2 description "can be a string with spaces"
+modify ltm node 10.10.10.2 monitor icmp
+modify ltm pool pool_vs_base_name_tcp8080 members add { 10.10.10.2:8080 }

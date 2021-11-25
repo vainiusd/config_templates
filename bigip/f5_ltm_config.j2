@@ -1,0 +1,73 @@
+#jinja2: lstrip_blocks: True
+# F5 LTM services configuration
+{#              
+#}
+{% for service in ltm.services %}
+
+## Virtual server: {{ service.vs_name }}_{{ service.transport }}{{ service.port }}
+  {% set vs = service.vs_name + '_' + service.transport + service.port|string %}
+create ltm virtual {{ vs }} destination {{ service.ip }}:{{ service.port }} ip-protocol {{ service.transport }}
+  {% if service.description is defined %}
+modify ltm virtual {{ vs }} description "{{ service.description }}"
+  {% endif %}
+  {% if global.snat is defined %}
+modify ltm virtual {{ vs }} source-address-translation { type {{ global.snat }} }
+  {% endif %}
+  {% if global.vlans_enabled is defined %}
+modify ltm virtual {{ vs }} vlans-enabled 
+    {% for vlan in global.vlans_enabled %}
+modify ltm virtual {{ vs }} vlans add { {{ vlan }} }
+    {% endfor %}
+  {% endif %}
+{#              
+#}
+  {% if service.tls is defined %}
+### TLS configuration
+    {% if service.tls.cs_profile is defined and service.tls.cs_profile %}
+modify ltm virtual {{ vs }} profiles add { {{ service.tls.cs_profile }} { context clientside } } 
+    {% endif %}
+    {% if service.tls.ss_profile is defined and service.tls.ss_profile %}
+modify ltm virtual {{ vs }} profiles add { {{ service.tls.ss_profile }} { context clientside } } 
+    {% endif %}
+  {% endif %}
+{#              
+#}
+  {% if service.http is defined and service.http.enabled %}
+### HTTP configuration
+modify ltm virtual {{ vs }} profiles add { {{ service.http.profile }} }
+  {% endif %}
+  {% if service.persistance is defined and service.persistance.enabled %}
+### Persistance configuration
+    {% if service.persistance.default is defined and service.persistance.default %}
+modify ltm virtual {{ vs }} persist replace-all-with { {{ service.persistance.default }} { } }
+    {% endif %}
+    {% if service.persistance.fallback is defined and service.persistance.fallback %}
+modify ltm virtual {{ vs }} fallback-persistence {{ service.persistance.fallback }}
+    {% endif %}
+  {% endif %}
+{#              
+#}
+### Pool configuration
+create ltm pool pool_{{ vs }}
+modify ltm virtual {{ vs }} pool pool_{{ vs }}
+  {% if service.pool.description is defined %}
+modify ltm pool pool_{{ vs }} description "{{ service.pool.description }}"
+  {% endif %}
+  {% if service.pool.method is defined %}
+modify ltm pool pool_{{ vs }} load-balancing-mode {{ service.pool.method }}
+  {% endif %}
+  {% if service.pool.monitor is defined %}
+modify ltm pool pool_{{ vs }} monitor {{ service.pool.monitor }}
+  {% endif %}
+### Pool member / node configuration
+  {% for node in service.pool.members %}
+create ltm node {{ node.ip }} address {{ node.ip }}
+    {% if node.description is defined %}
+modify ltm node {{ node.ip }} description "{{ node.description }}"
+    {% endif %}
+    {% if global.node_monitor is defined %}
+modify ltm node {{ node.ip }} monitor {{ global.node_monitor }}
+    {% endif %}
+modify ltm pool pool_{{ vs }} members add { {{ node.ip }}:{{ node.port }} }
+  {% endfor %}
+{% endfor %}

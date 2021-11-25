@@ -1,0 +1,36 @@
+---
+global:
+  snat: automap
+  vlans_enabled:
+    - vlan_name1
+  node_monitor: icmp
+  
+ltm:
+  services:
+    - vs_name: vs_base_name # Full name is vs_name_transportport
+      ip: 192.168.2.1 # VIP
+      description: can be a string with spaces
+      transport: tcp
+      port: 8080
+      tls:
+        cs_profile: clientssl
+        ss_profile: null # if null configuration is not defined
+      http:
+        enabled: true
+        profile: http
+      persistance: 
+        enabled: true
+        default: cookie
+        fallback: source_addr
+      pool:
+        name: pool_name
+        description: can be a string with spaces
+        method: least-connections-member # default is round-robin
+        monitor: tcp
+        members:
+          - ip: 10.10.10.1
+            description: can be a string with spaces
+            port: 8080
+          - ip: 10.10.10.2
+            description: can be a string with spaces
+            port: 8080
