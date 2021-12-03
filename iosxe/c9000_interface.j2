@@ -1,0 +1,79 @@
+#jinja2: lstrip_blocks: True
+{% for name, intf in phy.items() %}
+!
+interface {{ name }}
+  {% if intf.description is defined %}
+ description {{ intf.description }}
+  {% endif %}
+  {% if intf.shutdown is defined %}
+    {% if intf.shutdown %}
+ shutdown
+    {% else %}
+ no shutdown
+    {% endif %}
+  {% endif %}
+  {% if intf.type is defined and intf.type == "l2" %}
+ switchport
+    {% if intf.mode is defined and intf.mode == "access" %}
+ switchport mode access
+ switchport nonegotiate
+ switchport access vlan {{ intf.vlans }}
+    {% endif %}
+    {% if intf.mode is defined and intf.mode == "trunk" %}
+ switchport mode trunk
+ switchport nonegotiate
+ switchport trunk allowed vlan {{ intf.vlans }}
+      {% if intf.vlan_mappings is defined %}
+        {% for cvlan, svlan in intf.vlan_mappings.items() %}
+ switchport vlan mapping {{ cvlan }} {{ svlan }}
+        {% endfor %}
+      {% endif %}
+    {% endif %}
+  {% elif intf.type is defined and intf.type == "l3" %}
+ no switchport
+  {% endif %}
+{% endfor %}
+{% if lag is defined %}
+  {% for id, intf in lag.items() %}
+!
+    {% if intf.members is defined %}
+      {% for member in intf.members %}
+interface {{ member }}
+        {% if intf.lag_mode == "lacp" %}
+ channel-group {{ id }} mode active
+        {% elif intf.lag_mode == "static" %}
+ channel-group {{ id }} mode on
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+interface Port-channel{{ id }}
+    {% if intf.description is defined %}
+ description {{ intf.description }}
+    {% endif %}
+    {% if intf.shutdown is defined %}
+      {% if intf.shutdown %}
+ shutdown
+      {% else %}
+ no shutdown
+      {% endif %}
+    {% endif %}
+    {% if intf.type is defined and intf.type == "l2" %}
+ switchport
+      {% if intf.mode is defined and intf.mode == "access" %}
+ switchport mode access
+ switchport nonegotiate
+ switchport access vlan {{ intf.vlans }}
+      {% endif %}
+      {% if intf.mode is defined and intf.mode == "trunk" %}
+ switchport mode trunk
+ switchport nonegotiate
+ switchport trunk allowed vlan {{ intf.vlans }}
+        {% if intf.vlan_mappings is defined %}
+          {% for cvlan, svlan in intf.vlan_mappings.items() %}
+ switchport vlan mapping {{ cvlan }} {{ svlan }}
+          {% endfor %}
+        {% endif %}
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+{% endif %}

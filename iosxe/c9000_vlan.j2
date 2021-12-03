@@ -1,0 +1,16 @@
+#jinja2: lstrip_blocks: True
+{% for id, vlan in vlans.items() %}
+!
+! VLAN ID {{ id }}
+vlan {{ id }}
+ name {{ vlan.name }}
+  {% if vlan.l2vni is defined %}
+l2vpn evpn instance {{ id }} vlan-based
+ encapsulation vxlan
+ replication-type ingress
+vlan configuration {{ id }}
+ member evpn-instance {{ id }} vni {{ vlan.l2vni }}
+interface nve1
+ member vni {{ vlan.l2vni }} ingress-replication
+  {% endif %}
+{% endfor %}

@@ -1,0 +1,110 @@
+
+hostname switch1
+ip domain name lab.lab
+
+parser view ReadOnly
+ secret very_secret_read
+ commands exec include terminal length
+ commands exec include terminal
+ commands exec include show startup-config
+ commands exec include all show
+
+
+username admin secret very_secret111
+username admin privilege 15
+username readonly secret less_secret111
+username readonly privilege 15
+username readonly view ReadOnly
+
+
+
+system mtu 9198
+
+enable secret very_secret111
+snmp-server location snmp_location
+snmp-server contact snmp_contact
+snmp-server group v3group v3 priv
+snmp-server user v3user v3group v3 auth sha auth_very_secret111 priv aes 256 priv_very_secret111
+
+ntp server 192.168.2.1 prefer
+ntp server 192.168.2.2
+!
+logging buffered 512000
+logging host 192.168.2.3
+
+! MACsec configuration 
+key chain underlay-keychain macsec
+ key 1000
+   cryptographic-algorithm aes-256-cmac
+  key-string 7 CHANGE_ME
+   lifetime local 00:00:00 Jan 1 2021 infinite
+mka policy underlay_mka_pol
+ key-server priority 100
+ macsec-cipher-suite gcm-aes-256
+ confidentiality-offset 50
+ ssci-based-on-sci
+
+
+
+no banner exec
+no banner motd
+banner login ,
+===========================================================
+    
+                   BANNER TEXT
+
+===========================================================
+,
+
+
+
+no service pad
+service timestamps debug datetime msec
+service timestamps log datetime msec localtime
+service password-encryption
+service call-home
+no platform punt-keepalive disable-kernel-core
+! no service password-recovery
+no ip finger
+no ip bootp server
+ip dhcp bootp ignore
+no service dhcp
+no ip domain lookup
+no ip name-server
+no service config
+no ip http server
+ip http authentication local
+no ip http secure-server
+no ip scp server enable
+no cdp run
+no lldp run
+service tcp-keepalives-in
+service tcp-keepalives-out
+service unsupported-transceiver
+vtp mode off
+
+aaa new-model
+aaa local authentication attempts max-fail 5
+aaa authentication login default local
+aaa authorization exec default local
+aaa authorization console
+
+ip ssh version 2
+diagnostic bootup level minimal
+spanning-tree mode rapid-pvst
+spanning-tree extend system-id
+
+ip routing
+ip forward-protocol nd
+
+
+line con 0
+ exec-timeout 15
+ login authentication default
+ authorization exec default
+
+line vty 0 31
+ exec-timeout 15
+ transport input ssh
+ login authentication default
+ authorization exec default

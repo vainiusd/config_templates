@@ -1,0 +1,37 @@
+!
+! VLAN ID 3
+vlan 3
+ name VL_3
+l2vpn evpn instance 3 vlan-based
+ encapsulation vxlan
+ replication-type ingress
+vlan configuration 3
+ member evpn-instance 3 vni 20003
+interface nve1
+ member vni 20003 ingress-replication
+!
+! VLAN ID 4
+vlan 4
+ name VL_3
+!
+! VLAN ID 4087
+vlan 4087
+ name VL_4087
+l2vpn evpn instance 4087 vlan-based
+ encapsulation vxlan
+ replication-type ingress
+vlan configuration 4087
+ member evpn-instance 4087 vni 24087
+interface nve1
+ member vni 24087 ingress-replication
+!
+! VLAN ID 4088
+vlan 4088
+ name VL_4088
+l2vpn evpn instance 4088 vlan-based
+ encapsulation vxlan
+ replication-type ingress
+vlan configuration 4088
+ member evpn-instance 4088 vni 24088
+interface nve1
+ member vni 24088 ingress-replication

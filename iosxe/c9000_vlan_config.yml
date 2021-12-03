@@ -1,0 +1,12 @@
+vlans:
+  3:
+    name: VL_3
+    l2vni: 20003
+  4:
+    name: VL_3
+  4087:
+    name: VL_4087
+    l2vni: 24087
+  4088:
+    name: VL_4088
+    l2vni: 24088

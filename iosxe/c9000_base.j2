@@ -1,0 +1,145 @@
+#jinja2: lstrip_blocks: True
+{#
+Dynamic content generated from variables
+#}
+
+hostname {{ global.hostname }}
+ip domain name {{ global.domain }}
+
+parser view ReadOnly
+ secret {{ global.read_only_secret }}
+ commands exec include terminal length
+ commands exec include terminal
+ commands exec include show startup-config
+ commands exec include all show
+
+
+{% for user in users %}
+username {{ user.name }} secret {{ user.secret }}
+  {% if user.priv is defined %}
+username {{ user.name }} privilege {{ user.priv }}
+  {% endif %}
+  {% if user.view is defined %}
+username {{ user.name }} view {{ user.view }}
+  {% endif %}
+{% endfor %}
+
+
+
+system mtu {{ global.system_mtu }}
+
+enable secret {{ global.enable_secret }}
+{% if snmp is defined %}
+snmp-server location {{ snmp.location }}
+snmp-server contact {{ snmp.contact }}
+  {% if snmp.v3 is defined %}
+    {% for user in snmp.v3.users %}
+snmp-server group {{ user.group }} v3 {{ user.method }}
+      {% if user.auth is defined and user.priv is defined and user.method == "priv" %}
+snmp-server user {{ user.name }} {{ user.group }} v3 auth {{ user.auth.hash }} {{ user.auth.secret }} priv {{ user.priv.crypto }} {{ user.priv.secret }}
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+{% endif %}
+
+{% if ntp is defined %}
+  {% for item in ntp %}
+    {% if item.vrf is defined %}
+      {% if item.prefer is defined and item.prefer %}
+ntp server vrf {{ item.vrf }} {{ item.server }} prefer
+      {% else %}
+ntp server vrf {{ item.vrf }} {{ item.server }}
+      {% endif %}
+    {% else %}
+      {% if item.prefer is defined and item.prefer %}
+ntp server {{ item.server }} prefer
+      {% else %}
+ntp server {{ item.server }}
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+{% endif %}
+!
+{% if logging is defined %}
+  {% if logging.buffer is defined %}
+logging buffered {{ logging.buffer }}
+  {% endif %}
+  {% for server in logging.servers %}
+logging host {{ server }}
+  {% endfor %}
+{% endif %}
+
+{% if macsec is defined %}
+! MACsec configuration 
+{{ macsec }}
+{% endif %}
+
+{#
+Static banners
+#}
+
+no banner exec
+no banner motd
+banner login ,
+===========================================================
+    
+                   BANNER TEXT
+
+===========================================================
+,
+
+
+{#
+Static content as best-practise (to be extended)
+#}
+
+no service pad
+service timestamps debug datetime msec
+service timestamps log datetime msec localtime
+service password-encryption
+service call-home
+no platform punt-keepalive disable-kernel-core
+! no service password-recovery
+no ip finger
+no ip bootp server
+ip dhcp bootp ignore
+no service dhcp
+no ip domain lookup
+no ip name-server
+no service config
+no ip http server
+ip http authentication local
+no ip http secure-server
+no ip scp server enable
+no cdp run
+no lldp run
+service tcp-keepalives-in
+service tcp-keepalives-out
+service unsupported-transceiver
+vtp mode off
+
+aaa new-model
+aaa local authentication attempts max-fail 5
+aaa authentication login default local
+aaa authorization exec default local
+aaa authorization console
+
+ip ssh version 2
+diagnostic bootup level minimal
+spanning-tree mode rapid-pvst
+spanning-tree extend system-id
+
+ip routing
+ip forward-protocol nd
+
+
+line con 0
+ exec-timeout 15
+ login authentication default
+ authorization exec default
+
+line vty 0 31
+ exec-timeout 15
+ transport input ssh
+ login authentication default
+ authorization exec default

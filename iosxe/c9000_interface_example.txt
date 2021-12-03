@@ -1,0 +1,60 @@
+!
+interface gi1/0/2
+ description Simple access interface
+ switchport
+ switchport mode access
+ switchport nonegotiate
+ switchport access vlan 991
+!
+interface gi1/0/19
+ description Shutdown interface
+ shutdown
+!
+interface te1/1/2
+ description Simple trunk interface
+ switchport
+ switchport mode trunk
+ switchport nonegotiate
+ switchport trunk allowed vlan 4,6,8-12,2001
+!
+interface te1/1/4
+ description Simple trunk interface with vlan mapping
+ switchport
+ switchport mode trunk
+ switchport nonegotiate
+ switchport trunk allowed vlan 4,6,8-12,2001
+ switchport vlan mapping 1001 2001
+!
+interface te1/1/5
+ description LAG member
+!
+interface te1/1/6
+ description Isjungtas
+ shutdown
+!
+interface te2/1/1
+ description Layer 3 interface
+ no switchport
+!
+interface te1/1/5
+ channel-group 105 mode active
+interface te2/1/5
+ channel-group 105 mode active
+interface Port-channel105
+ description Port-channel105
+ switchport
+ switchport mode trunk
+ switchport nonegotiate
+ switchport trunk allowed vlan 4,6,8-12,2001
+ switchport vlan mapping 1001 2001
+!
+interface te1/1/7
+ channel-group 106 mode on
+interface te2/1/7
+ channel-group 106 mode on
+interface Port-channel106
+ description Port-channel106
+ switchport
+ switchport mode access
+ switchport nonegotiate
+ switchport access vlan 106

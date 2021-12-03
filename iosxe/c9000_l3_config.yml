@@ -1,0 +1,56 @@
+---
+routing:
+  static:
+    - prefix: 0.0.0.0 0.0.0.0
+      nh: 10.10.10.254
+      vrf: mgmt
+  ospf:
+    1:
+      router_id: 192.168.2.1
+      ref_bandwith: 1000000
+      auth: true
+      md5key: very_secret111
+      bfd: true
+  bgp:
+    asn: 65000
+    router_id: 192.168.2.1
+    neighbors:
+      192.168.2.2:
+        asn: 65000
+        update_source: Loopback0
+        af:
+          - afi: l2vpn
+            safi: evpn
+            send_comm: both
+l3:
+  loopbacks:
+    0:
+      ip: 192.168.2.101
+      description: Loopback for routing protocols
+      ospf:
+        id: 1
+        area: 0.0.0.0
+    1:
+      ip: 192.168.2.1
+      description: Loopback for VXLAN dataplane
+      ospf:
+        id: 1
+        area: 0.0.0.0
+  svis:
+    1001:
+      description: In Band Management SVI
+      vrf: mgmt
+      ip: 10.10.10.10
+      sm: 255.255.255.0
+  phy:
+    gi1/0/1:
+      description: L3 interface configuration
+      ip: 192.168.3.0
+      sm: 255.255.255.254
+      uderlay: true
+  nve:
+    id: 1
+    source: Loopback1
+evpn:
+  replication: ingress
+  router_id: Loopback1

@@ -1,0 +1,61 @@
+ip routing
+
+ip route vrf mgmt 0.0.0.0 0.0.0.0 10.10.10.254
+
+router ospf 1
+ router-id 192.168.2.1
+ auto-cost reference-bandwidth 1000000
+ area 0.0.0.0 authentication message-digest
+ bfd all-interfaces
+
+interface Loopback0
+ description Loopback for routing protocols
+ ip address 192.168.2.101 255.255.255.255
+ ip ospf 1 area 0.0.0.0
+interface Loopback1
+ description Loopback for VXLAN dataplane
+ ip address 192.168.2.1 255.255.255.255
+ ip ospf 1 area 0.0.0.0
+
+interface nve1
+ no ip address
+ source-interface Loopback1
+ host-reachability protocol bgp
+
+l2vpn evpn
+ replication-type ingress
+ router-id Loopback1
+
+router bgp 65000
+ bgp router-id 192.168.2.1
+ bgp log-neighbor-changes
+ no bgp default ipv4-unicast
+ !
+ address-family ipv4
+ exit-address-family
+ !
+ neighbor 192.168.2.2 remote-as 65000
+ neighbor 192.168.2.2 update-source Loopback0
+ address-family l2vpn evpn
+  neighbor 192.168.2.2 activate
+  neighbor 192.168.2.2 send-community both
+ exit-address-family
+
+interface Vlan 1001
+ description In Band Management SVI
+ vrf forwarding mgmt
+ ip address 10.10.10.10 255.255.255.0
+
+interface gi1/0/1
+ no switchport
+ description L3 interface configuration
+ ip address 192.168.3.0 255.255.255.254
+ mtu 9198
+ ip ospf network point-to-point
+ ip ospf bfd
+ ip ospf 1 area 0.0.0.0
+ macsec replay-protection window-size 1000
+ macsec network-link
+ mka policy underlay_mka_pol
+ mka pre-shared-key key-chain underlay-keychain
+ bfd interval 50 min_rx 50 multiplier 3

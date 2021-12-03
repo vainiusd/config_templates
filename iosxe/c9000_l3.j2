@@ -1,0 +1,126 @@
+#jinja2: lstrip_blocks: True
+ip routing
+
+{% if routing.static is defined %}
+  {% for rt in routing.static %}
+    {% if rt.vrf is defined %}
+ip route vrf {{ rt.vrf }} {{ rt.prefix }} {{ rt.nh }}
+    {% elif rt.vrf is defined and rt.name is defined %}
+ip route vrf {{ rt.vrf }} {{ rt.prefix }} {{ rt.nh }} name {{ rt.name }}
+    {% elif rt.name is defined %}
+ip route {{ rt.prefix }} {{ rt.nh }} name {{ rt.name }}
+    {% else %}
+ip route {{ rt.prefix }} {{ rt.nh }}
+    {% endif %}
+  {% endfor %}
+{% endif %}
+
+{% if routing.ospf is defined %}
+  {% for id, instance in routing.ospf.items() %}
+router ospf {{ id }}
+ router-id {{ instance.router_id }}
+    {% if instance.ref_bandwith is defined %}
+ auto-cost reference-bandwidth {{ instance.ref_bandwith }}
+    {% endif %}
+    {% if instance.auth is defined and instance.auth %}
+ area 0.0.0.0 authentication message-digest
+    {% endif %}
+    {% if instance.bfd is defined and instance.bfd %}
+ bfd all-interfaces
+    {% endif %}
+  {% endfor %}
+{% endif %}
+
+{% if l3.loopbacks is defined %}
+  {% for id, item in l3.loopbacks.items() %}
+interface Loopback{{ id }}
+    {% if item.description is defined %}
+ description {{ item.description }}
+    {% endif %}
+ ip address {{ item.ip }} 255.255.255.255
+    {% if item.ospf is defined %}
+ ip ospf {{ item.ospf.id }} area {{ item.ospf.area }}
+    {% endif %}
+  {% endfor %}
+{% endif %}
+
+{% if l3.nve is defined %}
+interface nve{{ l3.nve.id }}
+ no ip address
+ source-interface {{ l3.nve.source }}
+ host-reachability protocol bgp
+{% endif %}
+
+{% if evpn is defined %}
+l2vpn evpn
+ replication-type {{ evpn.replication }}
+ router-id {{ evpn.router_id }}
+{% endif %}
+
+{% if routing.bgp is defined %}
+router bgp {{ routing.bgp.asn }}
+ bgp router-id {{ routing.bgp.router_id }}
+ bgp log-neighbor-changes
+ no bgp default ipv4-unicast
+ !
+ address-family ipv4
+ exit-address-family
+ !
+  {% if routing.bgp.neighbors is defined %}
+    {% for neighbor, item in routing.bgp.neighbors.items() %}
+ neighbor {{ neighbor }} remote-as {{ item.asn }}
+ neighbor {{ neighbor }} update-source {{ item.update_source }}
+      {% if item.af is defined %}{% for af in item.af %}
+ address-family {{ af.afi }} {{ af.safi }}
+  neighbor {{ neighbor }} activate
+        {% if af.send_comm is defined %}
+  neighbor {{ neighbor }} send-community {{ af.send_comm }}
+        {% endif %}
+ exit-address-family
+      {% endfor %}{% endif %}
+    {% endfor %}
+  {% endif %}
+{% endif %}
+
+{% if l3.svis is defined %}
+  {% for id, svi in l3.svis.items() %}
+interface Vlan {{ id }}
+    {% if svi.description is defined %}
+ description {{ svi.description }}
+    {% endif %}
+    {% if svi.vrf is defined %}
+ vrf forwarding {{ svi.vrf }}
+    {% endif %}
+ ip address {{ svi.ip }} {{ svi.sm }}
+  {% endfor %}
+{% endif %}
+
+{% if l3.phy is defined %}
+  {% for name, intf in l3.phy.items() %}
+interface {{ name }}
+ no switchport
+    {% if intf.description is defined %}
+ description {{ intf.description }}
+    {% endif %}
+    {% if intf.vrf is defined %}
+ vrf forwarding {{ intf.vrf }}
+    {% endif %}
+ ip address {{ intf.ip }} {{ intf.sm }}
+    {% if intf.uderlay is defined and intf.uderlay %}
+      {% if routing.ospf.md5key is defined %}
+ ip ospf message-digest-key 1 md5 {{ routing.ospf.md5key }}
+      {% endif %}
+{# static config for simplicity #}
+ mtu 9198
+ ip ospf network point-to-point
+ ip ospf bfd
+ ip ospf 1 area 0.0.0.0
+ macsec replay-protection window-size 1000
+ macsec network-link
+ mka policy underlay_mka_pol
+ mka pre-shared-key key-chain underlay-keychain
+ bfd interval 50 min_rx 50 multiplier 3
+{# static config for simplicity #}
+    {% endif %}
+  {% endfor %}
+{% endif %}

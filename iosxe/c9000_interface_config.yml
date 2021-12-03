@@ -1,0 +1,52 @@
+---
+phy:
+  gi1/0/2:
+    description: Simple access interface
+    type: l2
+    mode: access
+    vlans: 991
+  gi1/0/19:
+    description: Shutdown interface
+    shutdown: true
+  te1/1/2:
+    description: Simple trunk interface
+    type: l2
+    mode: trunk
+    vlans: 4,6,8-12,2001
+  te1/1/4:
+    description: Simple trunk interface with vlan mapping
+    type: l2
+    mode: trunk
+    vlans: 4,6,8-12,2001
+    vlan_mappings:
+      1001: 2001
+  te1/1/5:
+    description: LAG member
+    type: lag
+  te1/1/6:
+    description: Isjungtas
+    shutdown: true
+  te2/1/1:
+    description: Layer 3 interface
+    type: l3
+lag:
+  105:
+    description: Port-channel105
+    lag_mode: lacp
+    type: l2
+    mode: trunk
+    vlans:  4,6,8-12,2001
+    vlan_mappings:
+      1001: 2001
+    members:
+      - te1/1/5
+      - te2/1/5
+  106:
+    description: Port-channel106
+    lag_mode: static
+    type: l2
+    mode: access
+    vlans:  106
+    members:
+      - te1/1/7
+      - te2/1/7

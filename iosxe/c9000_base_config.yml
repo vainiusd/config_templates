@@ -1,0 +1,51 @@
+---
+global:
+  hostname: switch1
+  domain: lab.lab
+  enable_secret: very_secret111
+  system_mtu: 9198
+  read_only_secret: very_secret_read
+users:
+  - name: admin
+    priv: 15
+    secret: very_secret111
+  - name: readonly
+    priv: 15
+    secret: less_secret111
+    view: ReadOnly
+snmp:
+  contact: snmp_contact
+  location: snmp_location
+  v3:
+    users:
+      - name: v3user
+        group: v3group
+        method: priv
+        priv:
+          crypto: aes 256
+          secret: priv_very_secret111
+        auth:
+          hash: sha
+          secret: auth_very_secret111
+ntp:
+  - server: 192.168.2.1
+    # vrf: optional
+    prefer: true
+  - server: 192.168.2.2
+logging:
+  buffer: 512000
+  servers:
+    - 192.168.2.3
+macsec: |
+  key chain underlay-keychain macsec
+   key 1000
+     cryptographic-algorithm aes-256-cmac
+    key-string 7 CHANGE_ME
+     lifetime local 00:00:00 Jan 1 2021 infinite
+  mka policy underlay_mka_pol
+   key-server priority 100
+   macsec-cipher-suite gcm-aes-256
+   confidentiality-offset 50
+   ssci-based-on-sci
+
+
