@@ -11,8 +11,12 @@ create net vlan {{ vlan_name }}
 modify net vlan {{ vlan_name }} tag {{ vlan.tag }}
       {% endif %}
       {% if vlan.interfaces is defined %}
-        {% for interface in vlan.interfaces %}
+        {% for interface, tagging in vlan.interfaces.items() %}
+          {% if tagging == "tagged" %}
+modify net vlan {{ vlan_name }} interfaces add { {{ interface }} { tagged } }
+          {% else %}
 modify net vlan {{ vlan_name }} interfaces add { {{ interface }} }
+          {% endif %}
         {% endfor %}
       {% endif %}
 #

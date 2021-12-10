@@ -4,7 +4,7 @@ net:
     - name: ha
       tag: 100
       interfaces:
-        - 1.3
+        1.3: untagged # tagged
       self:
         - name: ha-local
           ip: 10.1.1.1/29
@@ -13,7 +13,7 @@ net:
     - name: frontend
       tag: 110
       interfaces:
-        - 1.2
+        1.2: untagged # tagged
       self:
         - name: fe-local
           ip: 10.1.2.2/24
@@ -26,7 +26,7 @@ net:
     - name: backend
       tag: 120
       interfaces:
-        - 1.1
+        1.1: untagged # tagged
       self:
         - name: be-local
           ip: 10.1.3.2/24
