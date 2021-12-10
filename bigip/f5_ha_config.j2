@@ -1,0 +1,17 @@
+#jinja2: lstrip_blocks: True
+
+modify cm device {{ hostname }} configsync-ip {{ ha.config_sync_ip }}
+modify cm device {{ hostname }} unicast-address { {% for ip in ha.unicast_address %}{ ip {{ ip }} } {% endfor %}}
+
+modify cm device {{ hostname }} mirror-ip {{ ha.mirror.primary }}
+modify cm device {{ hostname }} mirror-secondary-ip  {{ ha.mirror.secondary }}
+
+{% if ha.dg is defined %}
+  {% if "failover" in ha.dg.type %}
+create cm device-group {{ ha.dg.name }} type sync-failover
+  {% else %}
+create cm device-group {{ ha.dg.name }}
+  {% endif %}
+modify cm device-group {{ ha.dg.name }} description "{{ ha.dg.description }}"
+modify cm device-group {{ ha.dg.name }} { devices add { {{ hostname }} } }
+{% endif %}

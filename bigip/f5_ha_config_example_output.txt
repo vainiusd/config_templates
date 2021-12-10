@@ -1,0 +1,10 @@
+
+modify cm device f5.example.com configsync-ip 198.51.100.1
+modify cm device f5.example.com unicast-address { { ip management-ip } { ip 198.51.100.1 } { ip 203.0.113.2 } }
+
+modify cm device f5.example.com mirror-ip 198.51.100.1
+modify cm device f5.example.com mirror-secondary-ip  203.0.113.2
+
+create cm device-group device-group1 type sync-failover
+modify cm device-group device-group1 description "F5 sync-failover device group"
+modify cm device-group device-group1 { devices add { f5.example.com } }
