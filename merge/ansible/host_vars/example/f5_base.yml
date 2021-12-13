@@ -1,0 +1,22 @@
+hostname: f5.example.com
+mgmt_dhcp: false
+mgmt_prefix: 192.0.2.1/24
+mgmt_gw: 192.0.2.254
+mgmt_routes:
+  - name: 198.51.100.11
+    prefix: 192.0.2.11/32
+    gw: 192.0.2.254
+    description: to DNS and NTP servers
+  - name: 198.51.100.12
+    prefix: 192.0.2.12/32
+    gw: 192.0.2.254
+    description: to DNS and NTP servers 
+dns:
+  servers:
+    - 198.51.100.11
+    - 198.51.100.12
+ntp:
+  timezone: Europe/Madrid
+  servers:
+    - 198.51.100.11
+    - 198.51.100.11

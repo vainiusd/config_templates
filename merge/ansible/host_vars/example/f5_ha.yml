@@ -1,0 +1,13 @@
+ha:
+  config_sync_ip: 198.51.100.1
+  unicast_address:
+    - management-ip
+    - 198.51.100.1
+    - 203.0.113.2
+  mirror:
+    primary: 198.51.100.1
+    secondary: 203.0.113.2
+  dg:
+    type: sync-failover # sync-only
+    name: device-group1
+    description: F5 sync-failover device group

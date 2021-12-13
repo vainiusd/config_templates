@@ -1,0 +1,34 @@
+---
+#
+# Merge device config with templates
+#
+- name: Template merging
+  hosts: managed
+  gather_facts: false
+  connection: local
+
+  tasks:
+
+  - name: Merge base template
+    delegate_to: localhost
+    ansible.builtin.template:
+      src: "{{ playbook_dir }}/templates/f5_base_config.j2"
+      dest: "{{ playbook_dir }}/configs/{{ inventory_hostname }}_base_config.txt"
+
+  - name: Merge network template
+    delegate_to: localhost
+    ansible.builtin.template:
+      src: "{{ playbook_dir }}/templates/f5_net_config.j2"
+      dest: "{{ playbook_dir }}/configs/{{ inventory_hostname }}_net_config.txt"
+
+  - name: Merge HA template
+    delegate_to: localhost
+    ansible.builtin.template:
+      src: "{{ playbook_dir }}/templates/f5_ha_config.j2"
+      dest: "{{ playbook_dir }}/configs/{{ inventory_hostname }}_ha_config.txt"
+
+  - name: Merge LTM service template
+    delegate_to: localhost
+    ansible.builtin.template:
+      src: "{{ playbook_dir }}/templates/f5_ltm_config.j2"
+      dest: "{{ playbook_dir }}/configs/{{ inventory_hostname }}_ltm_config.txt"
