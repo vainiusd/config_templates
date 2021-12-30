@@ -7,8 +7,9 @@ interface gi1/0/2
  switchport access vlan 991
 !
 interface gi1/0/19
- description Shutdown interface
  shutdown
+ description Shutdown interface
+ switchport
 !
 interface te1/1/2
  description Simple trunk interface
@@ -29,17 +30,14 @@ interface te1/1/5
  description LAG member
 !
 interface te1/1/6
- description Isjungtas
  shutdown
-!
-interface te2/1/1
- description Layer 3 interface
- no switchport
+
 !
 interface te1/1/5
  channel-group 105 mode active
 interface te2/1/5
  channel-group 105 mode active
+
 interface Port-channel105
  description Port-channel105
  switchport
@@ -52,6 +50,7 @@ interface te1/1/7
  channel-group 106 mode on
 interface te2/1/7
  channel-group 106 mode on
+
 interface Port-channel106
  description Port-channel106
  switchport

@@ -42,6 +42,11 @@ l3:
       vrf: mgmt
       ip: 10.10.10.10
       sm: 255.255.255.0
+  oob:
+    description: OOB Managment
+    ip: 192.168.4.1
+    sm: 255.255.255.0
+    shutdown: false
   phy:
     gi1/0/1:
       description: L3 interface configuration

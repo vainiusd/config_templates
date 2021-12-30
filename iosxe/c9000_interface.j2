@@ -2,9 +2,6 @@
 {% for name, intf in phy.items() %}
 !
 interface {{ name }}
-  {% if intf.description is defined %}
- description {{ intf.description }}
-  {% endif %}
   {% if intf.shutdown is defined %}
     {% if intf.shutdown %}
  shutdown
@@ -13,6 +10,9 @@ interface {{ name }}
     {% endif %}
   {% endif %}
   {% if intf.type is defined and intf.type == "l2" %}
+    {% if intf.description is defined %}
+ description {{ intf.description }}
+    {% endif %}
  switchport
     {% if intf.mode is defined and intf.mode == "access" %}
  switchport mode access
@@ -29,10 +29,13 @@ interface {{ name }}
         {% endfor %}
       {% endif %}
     {% endif %}
-  {% elif intf.type is defined and intf.type == "l3" %}
- no switchport
-  {% endif %}
+ {% elif intf.type is defined and intf.type == "lag" %}
+    {% if intf.description is defined %}
+ description {{ intf.description }}
+    {% endif %}
+ {% endif %}
 {% endfor %}
+
 {% if lag is defined %}
   {% for id, intf in lag.items() %}
 !
@@ -46,6 +49,7 @@ interface {{ member }}
         {% endif %}
       {% endfor %}
     {% endif %}
+
 interface Port-channel{{ id }}
     {% if intf.description is defined %}
  description {{ intf.description }}

@@ -17,6 +17,12 @@ interface Loopback1
  ip address 192.168.2.1 255.255.255.255
  ip ospf 1 area 0.0.0.0
 
+interface GigabitEthernet0/0
+ vrf forwarding Mgmt-vrf
+ ip address 192.168.4.1 255.255.255.0
+ negotiation auto
+ no shutdown
+
 interface nve1
  no ip address
  source-interface Loopback1

@@ -7,6 +7,7 @@ phy:
     vlans: 991
   gi1/0/19:
     description: Shutdown interface
+    type: l2
     shutdown: true
   te1/1/2:
     description: Simple trunk interface
@@ -26,9 +27,7 @@ phy:
   te1/1/6:
     description: Isjungtas
     shutdown: true
-  te2/1/1:
-    description: Layer 3 interface
-    type: l3
+
 lag:
   105:
     description: Port-channel105

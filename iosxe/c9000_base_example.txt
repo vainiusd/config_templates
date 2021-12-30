@@ -9,14 +9,11 @@ parser view ReadOnly
  commands exec include show startup-config
  commands exec include all show
 
-
 username admin secret very_secret111
 username admin privilege 15
 username readonly secret less_secret111
 username readonly privilege 15
 username readonly view ReadOnly
-
-
 
 system mtu 9198
 
@@ -31,6 +28,12 @@ ntp server 192.168.2.2
 !
 logging buffered 512000
 logging host 192.168.2.3
+logging source-interface gi0/0
+
+no ip domain lookup
+ip domain lookup
+ip name-server 192.168.2.4
+ip domain lookup source-interface gi0/0
 
 ! MACsec configuration 
 key chain underlay-keychain macsec
@@ -43,7 +46,6 @@ mka policy underlay_mka_pol
  macsec-cipher-suite gcm-aes-256
  confidentiality-offset 50
  ssci-based-on-sci
-
 
 
 no banner exec
@@ -69,8 +71,6 @@ no ip finger
 no ip bootp server
 ip dhcp bootp ignore
 no service dhcp
-no ip domain lookup
-no ip name-server
 no service config
 no ip http server
 ip http authentication local
@@ -82,6 +82,9 @@ service tcp-keepalives-in
 service tcp-keepalives-out
 service unsupported-transceiver
 vtp mode off
+
+clock timezone EET 2 0
+clock summer-time EEST recurring last Sun Mar 3:00 last Sun Oct 3:00
 
 aaa new-model
 aaa local authentication attempts max-fail 5

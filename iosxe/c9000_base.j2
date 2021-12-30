@@ -6,13 +6,14 @@ Dynamic content generated from variables
 hostname {{ global.hostname }}
 ip domain name {{ global.domain }}
 
+{% if global.read_only_secret is defined %}
 parser view ReadOnly
  secret {{ global.read_only_secret }}
  commands exec include terminal length
  commands exec include terminal
  commands exec include show startup-config
  commands exec include all show
-
+{% endif %}
 
 {% for user in users %}
 username {{ user.name }} secret {{ user.secret }}
@@ -23,8 +24,6 @@ username {{ user.name }} privilege {{ user.priv }}
 username {{ user.name }} view {{ user.view }}
   {% endif %}
 {% endfor %}
-
-
 
 system mtu {{ global.system_mtu }}
 
@@ -65,15 +64,44 @@ ntp server {{ item.server }}
 logging buffered {{ logging.buffer }}
   {% endif %}
   {% for server in logging.servers %}
-logging host {{ server }}
+    {% if server.vrf is defined %}
+logging host {{ server.server }} vrf {{ server.vrf }}
+    {% else %}
+logging host {{ server.server }}
+    {% endif %}
   {% endfor %}
+  {% if logging.source_interface is defined %}
+    {% if logging.source_vrf is defined %}
+logging source-interface {{ logging.source_interface }} vrf {{ logging.source_vrf }}
+    {% else %}
+logging source-interface {{ logging.source_interface }}
+    {% endif %}
+  {% endif %}
+{% endif %}
+
+no ip domain lookup
+{% if dns is defined %}
+ip domain lookup
+  {% for server in dns.servers %}
+    {% if server.vrf is defined %}
+ip name-server vrf {{ server.vrf }} {{ server.server }}
+    {% else %}
+ip name-server {{ server.server }}
+    {% endif %}
+  {% endfor %}
+  {% if dns.source_interface is defined %}
+    {% if dns.source_vrf is defined %}
+ip domain lookup vrf {{ dns.source_vrf }} source-interface {{ dns.source_interface }}
+    {% else %}
+ip domain lookup source-interface {{ dns.source_interface }}
+    {% endif %}
+  {% endif %}
 {% endif %}
 
 {% if macsec is defined %}
 ! MACsec configuration 
 {{ macsec }}
 {% endif %}
-
 {#
 Static banners
 #}
@@ -104,8 +132,6 @@ no ip finger
 no ip bootp server
 ip dhcp bootp ignore
 no service dhcp
-no ip domain lookup
-no ip name-server
 no service config
 no ip http server
 ip http authentication local
@@ -117,6 +143,9 @@ service tcp-keepalives-in
 service tcp-keepalives-out
 service unsupported-transceiver
 vtp mode off
+
+clock timezone EET 2 0
+clock summer-time EEST recurring last Sun Mar 3:00 last Sun Oct 3:00
 
 aaa new-model
 aaa local authentication attempts max-fail 5

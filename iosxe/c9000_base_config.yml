@@ -35,7 +35,16 @@ ntp:
 logging:
   buffer: 512000
   servers:
-    - 192.168.2.3
+    - server: 192.168.2.3
+      # vrf: optional
+  source_interface: gi0/0
+  # source_vrf: optional
+dns:
+  servers:
+    - server: 192.168.2.4
+      # vrf: optional
+  source_interface: gi0/0
+  # source_vrf: optional
 macsec: |
   key chain underlay-keychain macsec
    key 1000
@@ -47,5 +56,3 @@ macsec: |
    macsec-cipher-suite gcm-aes-256
    confidentiality-offset 50
    ssci-based-on-sci
-
-

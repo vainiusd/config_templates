@@ -44,6 +44,22 @@ interface Loopback{{ id }}
   {% endfor %}
 {% endif %}
 
+{% if l3.oob is defined %}
+interface GigabitEthernet0/0
+ vrf forwarding Mgmt-vrf
+  {% if l3.oob.ip is defined and l3.oob.sm is defined %}
+ ip address {{ l3.oob.ip }} {{ l3.oob.sm }}
+  {% else %}
+ no ip address
+  {% endif %}
+ negotiation auto
+  {% if l3.oob.shutdown is defined and l3.oob.shutdown %}
+ shutdown
+  {% else %}
+ no shutdown
+  {% endif %}
+{% endif %}
+
 {% if l3.nve is defined %}
 interface nve{{ l3.nve.id }}
  no ip address
